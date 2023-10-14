@@ -124,7 +124,6 @@ jobs:
           # NOTE for forks: if your Docker Hub organization doesn't match your Github repo's,
           # then the use of jjgadgets will need to be replaced.
           images: |
-            jjgadgets/minecraft-server
             ghcr.io/jjgadgets/minecraft-server
           tags: |
             # For the "main" variant, it gets the tag as-is, without suffix
@@ -182,7 +181,6 @@ jobs:
 
       - name: Login to GHCR
         uses: docker/login-action@v3.0.0
-        if: env.HAS_IMAGE_REPO_ACCESS
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
