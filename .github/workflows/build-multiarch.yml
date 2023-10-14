@@ -106,7 +106,6 @@ jobs:
             platforms: linux/amd64,linux/arm64
             mcVersion: 1.12.2
     env:
-      IMAGE_TO_TEST: ${{ github.repository_owner }}/minecraft-server:test-${{ matrix.variant }}-${{ github.run_id }}
       HAS_IMAGE_REPO_ACCESS: ${{ secrets.DOCKER_USER != '' && secrets.DOCKER_PASSWORD != '' }}
       MAIN_VARIANT: java17
     runs-on: ubuntu-20.04
@@ -117,15 +116,23 @@ jobs:
           # for build-files step
           fetch-depth: 0
 
+      # Source: https://github.com/orgs/community/discussions/27086#discussioncomment-3254548
+      - name: Lowercase username & set IMAGE_TO_TEST env var
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+          echo "IMAGE_TO_TEST=${OWNER_LC}/minecraft-server:test-${{ matrix.variant }}-${{ github.run_id }}"
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
           # NOTE for forks: if your Docker Hub organization doesn't match your Github repo's,
-          # then the use of ${{ github.repository_owner }} will need to be replaced.
+          # then the use of ${OWNER_LC} will need to be replaced.
           images: |
-            ${{ github.repository_owner }}/minecraft-server
-            ghcr.io/${{ github.repository_owner }}/minecraft-server
+            ${OWNER_LC}/minecraft-server
+            ghcr.io/${OWNER_LC}/minecraft-server
           tags: |
             # For the "main" variant, it gets the tag as-is, without suffix
             type=ref,event=tag,enable=${{ matrix.variant == env.MAIN_VARIANT }}
@@ -134,7 +141,7 @@ jobs:
             # for building test/* branch images
             type=ref,event=branch,suffix=-${{ matrix.variant }},enable=${{ github.ref_name != github.event.repository.default_branch }}
             # latest repo tag gets a moving 'stable' image tag applied to the main variant
-            type=raw,value=stable,enable=${{ github.ref_type == 'tag' && matrix.variant == env.MAIN_VARIANT }}            
+            type=raw,value=stable,enable=${{ github.ref_type == 'tag' && matrix.variant == env.MAIN_VARIANT }}
             # apply the variant as a moving tag for most recent commit per variant
             type=raw,value=${{ matrix.variant }},enable=${{ github.ref_name == github.event.repository.default_branch }}
           # NOTE this identifies which variant will be published as "latest", which isn't
@@ -194,13 +201,13 @@ jobs:
         with:
           platforms: ${{ matrix.platforms }}
           push: >
-            ${{ 
-            github.ref_type == 'tag' 
+            ${{
+            github.ref_type == 'tag'
             || github.ref_name == github.event.repository.default_branch
             || startsWith(github.ref_name, 'test/')
-            || ( github.event_name == 'pull_request' 
-                 && env.HAS_IMAGE_REPO_ACCESS 
-                 && contains(github.event.pull_request.labels.*.name, 'ci/push-image') 
+            || ( github.event_name == 'pull_request'
+                 && env.HAS_IMAGE_REPO_ACCESS
+                 && contains(github.event.pull_request.labels.*.name, 'ci/push-image')
                )
             }}
           tags: ${{ steps.meta.outputs.tags }}
