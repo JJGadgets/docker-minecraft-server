@@ -116,23 +116,14 @@ jobs:
           # for build-files step
           fetch-depth: 0
 
-      # Source: https://github.com/orgs/community/discussions/27086#discussioncomment-3254548
-      - name: Lowercase username & set IMAGE_TO_TEST env var
-        run: |
-          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
-          echo "IMAGE_TO_TEST=${OWNER_LC}/minecraft-server:test-${{ matrix.variant }}-${{ github.run_id }}"
-        env:
-          OWNER: '${{ github.repository_owner }}'
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
           # NOTE for forks: if your Docker Hub organization doesn't match your Github repo's,
-          # then the use of ${OWNER_LC} will need to be replaced.
+          # then the use of jjgadgets will need to be replaced.
           images: |
-            ${OWNER_LC}/minecraft-server
-            ghcr.io/${OWNER_LC}/minecraft-server
+            ghcr.io/jjgadgets/minecraft-server
           tags: |
             # For the "main" variant, it gets the tag as-is, without suffix
             type=ref,event=tag,enable=${{ matrix.variant == env.MAIN_VARIANT }}
