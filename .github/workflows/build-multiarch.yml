@@ -106,6 +106,7 @@ jobs:
             platforms: linux/amd64,linux/arm64
             mcVersion: 1.12.2
     env:
+      IMAGE_TO_TEST: jjgadgets/minecraft-server:test-${{ matrix.variant }}-${{ github.run_id }}
       HAS_IMAGE_REPO_ACCESS: ${{ secrets.DOCKER_USER != '' && secrets.DOCKER_PASSWORD != '' }}
       MAIN_VARIANT: java17
     runs-on: ubuntu-20.04
@@ -123,6 +124,7 @@ jobs:
           # NOTE for forks: if your Docker Hub organization doesn't match your Github repo's,
           # then the use of jjgadgets will need to be replaced.
           images: |
+            jjgadgets/minecraft-server
             ghcr.io/jjgadgets/minecraft-server
           tags: |
             # For the "main" variant, it gets the tag as-is, without suffix
